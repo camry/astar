@@ -2,6 +2,7 @@ package astar_test
 
 import (
     "fmt"
+    "github.com/stretchr/testify/assert"
     "testing"
 
     "github.com/camry/astar"
@@ -16,9 +17,9 @@ func TestNew(t *testing.T) {
         }
         for x := start; x < start+7; x++ {
             tiles[fmt.Sprintf(`%d:%d`, x, y)] = astar.NewTile(astar.NewVector(int32(x), int32(y)))
-            fmt.Printf(`%2d,%2d,%2d  `, x, y, 0-y-x)
+            // fmt.Printf(`%2d,%2d,%2d  `, x, y, 0-y-x)
         }
-        fmt.Println()
+        // fmt.Println()
     }
     obstacles := map[string]*astar.Vector{
         "2:2":  astar.NewVector(2, 2),
@@ -65,8 +66,17 @@ func TestNew(t *testing.T) {
     }
     startTile := tiles["0:3"]
     endTile := tiles["3:4"]
+    pathVector := []*astar.Vector{
+        astar.NewVector(0, 3),
+        astar.NewVector(0, 4),
+        astar.NewVector(0, 5),
+        astar.NewVector(1, 5),
+        astar.NewVector(2, 5),
+        astar.NewVector(3, 4),
+    }
     paths := astar.New(astar.Mode(astar.Vector3Mode)).FindPath(startTile, endTile)
-    for _, path := range paths {
-        fmt.Println(path.Vector())
+    for i, path := range paths {
+        assert.Equal(t, path.Vector().X(), pathVector[i].X())
+        assert.Equal(t, path.Vector().Y(), pathVector[i].Y())
     }
 }
