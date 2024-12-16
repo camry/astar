@@ -15,8 +15,3 @@ func Context(ctx context.Context) Option {
 func Mode(mode VectorMode) Option {
     return func(f *Astar) { f.mode = mode }
 }
-
-// TableVectors 设置
-func TableVectors() {
-
-}

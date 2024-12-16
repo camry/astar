@@ -2,10 +2,11 @@ package astar
 
 import (
     "context"
-    "github.com/camry/g/gutil"
-    "github.com/shopspring/decimal"
     "reflect"
     "sort"
+
+    "github.com/camry/fp"
+    "github.com/samber/lo"
 )
 
 type VectorMode int8
@@ -82,7 +83,7 @@ func (a *Astar) FindPath(start, end *Tile) []*Tile {
         g := currentTile.g + 1
 
         // 如果在关闭的列表中有一个目标地格，我们就找到了一个路径。
-        if gutil.InArray(end, closedPathTiles) {
+        if lo.Contains(closedPathTiles, end) {
             break
         }
 
@@ -91,11 +92,11 @@ func (a *Astar) FindPath(start, end *Tile) []*Tile {
             if tile.isObstacle {
                 continue
             }
-            if gutil.InArray(tile, closedPathTiles) {
+            if lo.Contains(closedPathTiles, tile) {
                 continue
             }
             // 如果它不在开放列表中，则添加它并计算 G 和 H。
-            if !(gutil.InArray(tile, openPathTiles)) {
+            if !(lo.Contains(openPathTiles, tile)) {
                 tile.g = g
                 if a.Mode() == Vector3Mode {
                     tile.h = a.Vector3H(tile.vector, end.vector)
@@ -110,12 +111,12 @@ func (a *Astar) FindPath(start, end *Tile) []*Tile {
     }
 
     // 回溯设置最终路径。
-    if gutil.InArray(end, closedPathTiles) {
+    if lo.Contains(closedPathTiles, end) {
         currentTile = end
         finalPathTiles = append(finalPathTiles, currentTile)
         for i := end.g - 1; i >= 0; i-- {
             for _, tile := range closedPathTiles {
-                if tile.g == i && gutil.InArray(tile, currentTile.nearList) {
+                if tile.g == i && lo.Contains(currentTile.nearList, tile) {
                     currentTile = tile
                 }
             }
@@ -125,20 +126,21 @@ func (a *Astar) FindPath(start, end *Tile) []*Tile {
             return true
         })
     }
+
     return finalPathTiles
 }
 
 // Vector2H H = |x1 – x2| + |y1 – y2|。
 func (a *Astar) Vector2H(start, end *Vector) int32 {
-    d1 := decimal.NewFromInt32(start.X()).Sub(decimal.NewFromInt32(end.X())).Abs()
-    d2 := decimal.NewFromInt32(start.Y()).Sub(decimal.NewFromInt32(end.Y())).Abs()
-    return int32(d1.Add(d2).IntPart())
+    d1 := fp.F64FromInt32(start.X()).Sub(fp.F64FromInt32(end.X())).Abs()
+    d2 := fp.F64FromInt32(start.Y()).Sub(fp.F64FromInt32(end.Y())).Abs()
+    return d1.Add(d2).FloorToInt()
 }
 
 // Vector3H H = Max(|x1 – x2|, |y1 – y2|, |z1 – z2|)。
 func (a *Astar) Vector3H(start, end *Vector) int32 {
-    d1 := decimal.NewFromInt32(start.X()).Sub(decimal.NewFromInt32(end.X())).Abs()
-    d2 := decimal.NewFromInt32(start.Y()).Sub(decimal.NewFromInt32(end.Y())).Abs()
-    d3 := decimal.NewFromInt32(start.Z()).Sub(decimal.NewFromInt32(end.Z())).Abs()
-    return int32(decimal.Max(d1, d2, d3).IntPart())
+    d1 := fp.F64FromInt32(start.X()).Sub(fp.F64FromInt32(end.X())).Abs()
+    d2 := fp.F64FromInt32(start.Y()).Sub(fp.F64FromInt32(end.Y())).Abs()
+    d3 := fp.F64FromInt32(start.Z()).Sub(fp.F64FromInt32(end.Z())).Abs()
+    return fp.F64Max(d1, d2, d3).FloorToInt()
 }

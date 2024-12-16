@@ -4,8 +4,9 @@ import (
     "context"
     "testing"
 
-    "github.com/camry/astar"
     "github.com/stretchr/testify/assert"
+
+    "github.com/camry/astar"
 )
 
 func TestContext(t *testing.T) {
